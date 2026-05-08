@@ -22,4 +22,8 @@
     <Using Include="NUnit.Framework" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FitLife.Trainer.Api\FitLife.Trainer.Api.csproj" />
+  </ItemGroup>
+
 </Project>

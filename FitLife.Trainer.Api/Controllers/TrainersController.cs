@@ -1,11 +1,13 @@
 using FitLife.Trainer.Api.DTOs;
 using FitLife.Trainer.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FitLife.Trainer.Api.Controllers;
 
 [ApiController]
 [Route("api/trainers")]
+[Authorize]
 public class TrainersController : ControllerBase
 {
     private readonly ITrainerService _trainerService;
