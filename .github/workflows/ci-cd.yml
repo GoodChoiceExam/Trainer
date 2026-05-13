@@ -3,7 +3,6 @@ name: CI/CD
 on:
   push:
     branches: [master, develop, "feature/**"]
-    tags: ["v*.*.*"]
   pull_request:
     branches: [develop, master]
 
@@ -33,6 +32,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
+
     steps:
       - uses: actions/checkout@v4
 
@@ -42,8 +42,6 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/fitlife-trainer
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=sha-
             type=raw,value=latest
 
