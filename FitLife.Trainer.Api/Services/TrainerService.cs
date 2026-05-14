@@ -93,4 +93,13 @@ public class TrainerService : ITrainerService
         Rating = request.Rating,
         Sessions = request.Sessions
     };
+    
+    public async Task<List<TrainerBooking>> GetBookingsByMemberAsync(Guid memberId)
+    {
+        var trainers = await _trainers.Find(_ => true).ToListAsync();
+        return trainers
+            .SelectMany(t => t.Bookings)
+            .Where(b => b.MemberId == memberId && b.Status == BookingStatus.Booked)
+            .ToList();
+    }
 }
