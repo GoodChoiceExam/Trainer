@@ -93,4 +93,25 @@ public class TrainerService : ITrainerService
         Rating = request.Rating,
         Sessions = request.Sessions
     };
+    
+    public async Task<List<TrainerBooking>> GetBookingsByMemberAsync(Guid memberId)
+    {
+        var trainers = await _trainers.Find(_ => true).ToListAsync();
+        return trainers
+            .SelectMany(t => t.Bookings)
+            .Where(b => b.MemberId == memberId && b.Status == BookingStatus.Booked)
+            .ToList();
+    }
+    
+    public async Task<List<int>> GetBookedHoursAsync(Guid trainerId, DateOnly date)
+    {
+        var trainer = await GetByIdAsync(trainerId);
+        if (trainer is null) return [];
+
+        return trainer.Bookings
+            .Where(b => b.Status == BookingStatus.Booked 
+                        && DateOnly.FromDateTime(b.SessionTime.ToLocalTime()) == date)
+            .Select(b => b.SessionTime.ToLocalTime().Hour)
+            .ToList();
+    }
 }

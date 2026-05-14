@@ -86,4 +86,18 @@ public class TrainersController : ControllerBase
 
         return Ok(booking);
     }
+    
+    [HttpGet("bookings/mine")]
+    public async Task<IActionResult> GetMyBookings([FromQuery] Guid memberId)
+    {
+        var bookings = await _trainerService.GetBookingsByMemberAsync(memberId);
+        return Ok(bookings);
+    }
+    
+    [HttpGet("{id:guid}/booked-hours")]
+    public async Task<IActionResult> GetBookedHours(Guid id, [FromQuery] DateOnly date)
+    {
+        var hours = await _trainerService.GetBookedHoursAsync(id, date);
+        return Ok(hours);
+    }
 }
