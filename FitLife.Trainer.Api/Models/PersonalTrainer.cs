@@ -13,8 +13,10 @@ public class PersonalTrainer
 
     public TrainerBooking Book(Guid memberId, DateTime sessionTime)
     {
-        if (Bookings.Any(b => b.MemberId == memberId && b.SessionTime == sessionTime && b.Status == BookingStatus.Booked))
-            throw new InvalidOperationException("Medlem har allerede en aktiv booking på dette tidspunkt.");
+        if (Bookings.Any(b => b.Status == BookingStatus.Booked
+                              && b.SessionTime.Date == sessionTime.Date
+                              && b.SessionTime.Hour == sessionTime.Hour))
+            throw new InvalidOperationException("Tidspunktet er allerede booket.");
 
         var booking = new TrainerBooking
         {
