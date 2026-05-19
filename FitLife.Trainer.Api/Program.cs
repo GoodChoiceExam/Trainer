@@ -3,6 +3,7 @@ using FitLife.Trainer.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using MongoDB.Driver;
 using NLog;
 using NLog.Web;
 
@@ -56,6 +57,10 @@ try
                   .AllowAnyHeader()
                   .AllowAnyMethod());
     });
+
+    var mongoClient = new MongoClient(builder.Configuration["MongoDB:ConnectionString"]);
+    var database = mongoClient.GetDatabase(builder.Configuration["MongoDB:DatabaseName"]);
+    builder.Services.AddSingleton(database);
 
     builder.Services.AddSingleton<ITrainerService, TrainerService>();
     builder.Services.AddControllers()
