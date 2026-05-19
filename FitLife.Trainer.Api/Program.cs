@@ -3,6 +3,8 @@ using FitLife.Trainer.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using NLog;
 using NLog.Web;
@@ -11,8 +13,7 @@ var logger = LogManager.Setup().LoadConfigurationFromFile("NLog.config").GetCurr
 
 try
 {
-    MongoDB.Bson.Serialization.BsonSerializer.RegisterSerializer(
-        new MongoDB.Bson.Serialization.Serializers.GuidSerializer(MongoDB.Bson.GuidRepresentation.Standard));
+    BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.GuidRepresentation.Standard));
 
     var builder = WebApplication.CreateBuilder(args);
 
