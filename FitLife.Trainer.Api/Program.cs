@@ -1,4 +1,5 @@
 using System.Text;
+using FitLife.Trainer.Api.Repositories;
 using FitLife.Trainer.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -68,6 +69,8 @@ try
     var database = mongoClient.GetDatabase(builder.Configuration["MongoDB:DatabaseName"]);
     builder.Services.AddSingleton(database);
 
+    builder.Services.AddMemoryCache();
+    builder.Services.AddSingleton<ITrainerRepository, TrainerRepository>();
     builder.Services.AddSingleton<ITrainerService, TrainerService>();
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
