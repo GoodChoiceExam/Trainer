@@ -67,6 +67,7 @@ try
     var database = mongoClient.GetDatabase(builder.Configuration["MongoDB:DatabaseName"]);
     builder.Services.AddSingleton(database);
 
+    builder.Services.AddMemoryCache();
     builder.Services.AddSingleton<ITrainerService, TrainerService>();
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
