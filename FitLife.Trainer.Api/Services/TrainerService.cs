@@ -8,15 +8,9 @@ public class TrainerService : ITrainerService
 {
     private readonly IMongoCollection<PersonalTrainer> _trainers;
 
-    public TrainerService(IConfiguration configuration)
+    public TrainerService(IMongoDatabase database)
     {
-        var mongoConn = configuration["MongoDB:ConnectionString"]!;
-        var mongoDb = configuration["MongoDB:DatabaseName"]!;
-        var collectionName = configuration["MongoDB:CollectionName"] ?? "trainers";
-
-        var client = new MongoClient(mongoConn);
-        var database = client.GetDatabase(mongoDb);
-        _trainers = database.GetCollection<PersonalTrainer>(collectionName);
+        _trainers = database.GetCollection<PersonalTrainer>("trainers");
     }
 
     public async Task<List<PersonalTrainer>> GetAllAsync()
