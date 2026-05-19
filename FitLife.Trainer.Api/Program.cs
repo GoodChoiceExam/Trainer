@@ -95,6 +95,7 @@ try
     });
 
     var app = builder.Build();
+    logger.Info("FitLife Trainer API starting");
 
     app.UseSwagger();
     app.UseSwaggerUI();
