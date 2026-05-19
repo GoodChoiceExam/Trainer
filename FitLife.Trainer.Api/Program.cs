@@ -44,6 +44,11 @@ try
                 {
                     logger.Warn(context.Exception, "JWT authentication failed");
                     return Task.CompletedTask;
+                },
+                OnChallenge = context =>
+                {
+                    logger.Warn("Unauthorized request to {Path}", context.Request.Path);
+                    return Task.CompletedTask;
                 }
             };
         });
