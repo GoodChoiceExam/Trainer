@@ -103,9 +103,9 @@ public class TrainerService : ITrainerService
         if (trainer is null) return [];
 
         return trainer.Bookings
-            .Where(b => b.Status == BookingStatus.Booked 
-                        && DateOnly.FromDateTime(b.SessionTime.ToLocalTime()) == date)
-            .Select(b => b.SessionTime.ToLocalTime().Hour)
+            .Where(b => b.Status == BookingStatus.Booked
+                        && DateOnly.FromDateTime(b.SessionTime) == date)
+            .Select(b => b.SessionTime.Hour)
             .ToList();
     }
 }
