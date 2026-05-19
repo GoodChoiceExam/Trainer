@@ -1,3 +1,4 @@
+using System.Text;
 using FitLife.Trainer.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +19,7 @@ try
 
     var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "fitlife-identity";
     var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "fitlife";
-    var jwksUrl = builder.Configuration["Jwt:JwksUrl"] ?? "http://localhost:5244/.well-known/jwks.json";
+    var secret = builder.Configuration["Jwt:Secret"] ?? "dev-secret-change-in-production";
 
     builder.Services
         .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -32,7 +33,7 @@ try
                 ValidAudience = jwtAudience,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKeyResolver = (_, _, _, _) => JwksSigningKeyResolver.GetSigningKeys(jwksUrl)
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
             };
 
             options.Events = new JwtBearerEvents
@@ -84,24 +85,4 @@ catch (Exception ex)
 finally
 {
     LogManager.Shutdown();
-}
-
-static class JwksSigningKeyResolver
-{
-    private static readonly HttpClient Client = new();
-    private static DateTime _expiresAt = DateTime.MinValue;
-    private static IReadOnlyCollection<SecurityKey> _cachedKeys = [];
-
-    public static IEnumerable<SecurityKey> GetSigningKeys(string jwksUrl)
-    {
-        if (_cachedKeys.Count > 0 && DateTime.UtcNow < _expiresAt)
-            return _cachedKeys;
-
-        var json = Client.GetStringAsync(jwksUrl).GetAwaiter().GetResult();
-        var jwks = new JsonWebKeySet(json);
-
-        _cachedKeys = jwks.Keys.Cast<SecurityKey>().ToArray();
-        _expiresAt = DateTime.UtcNow.AddMinutes(5);
-        return _cachedKeys;
-    }
 }
