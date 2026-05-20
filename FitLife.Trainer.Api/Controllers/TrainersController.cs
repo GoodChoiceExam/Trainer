@@ -12,37 +12,17 @@ public class TrainersController : ControllerBase
 {
     private readonly ITrainerService _trainerService;
     private readonly ILogger<TrainersController> _logger;
-    private readonly IConfiguration _config;
 
-    public TrainersController(ITrainerService trainerService, ILogger<TrainersController> logger, IConfiguration config)
+    public TrainersController(ITrainerService trainerService, ILogger<TrainersController> logger)
     {
         _trainerService = trainerService;
         _logger = logger;
-        _config = config;
     }
 
-    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
         return Ok(await _trainerService.GetAllAsync());
-    }
-
-    [AllowAnonymous]
-    [HttpGet("service")]
-    public IActionResult GetService()
-    {
-        var isFail = _config["ToFail"] == "yes";
-        var hostname = System.Net.Dns.GetHostName();
-        var seconds = DateTime.Now.Second;
-        var hasError = seconds > 30 && seconds < 45;
-
-        _logger.LogDebug("Fail condition for {Hostname} is set to {IsFail}", hostname, isFail);
-
-        if (hasError && isFail)
-            return StatusCode(503);
-
-        return Ok(new { hostname, seconds });
     }
 
     [HttpGet("{id:guid}")]
