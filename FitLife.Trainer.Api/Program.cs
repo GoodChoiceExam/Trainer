@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using FitLife.Trainer.Api.Repositories;
 using FitLife.Trainer.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -20,6 +21,15 @@ try
 
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
+
+    var gatewayUrl = builder.Configuration["GatewayUrl"] ?? "http://localhost";
+    builder.Services.AddHttpClient("FitLifeGateway", client =>
+    {
+        client.BaseAddress = new Uri(gatewayUrl);
+        client.DefaultRequestHeaders.Add("Accept", "application/json");
+    });
+
+    builder.Services.AddRazorPages();
 
     var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "fitlife-identity";
     var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "fitlife";
@@ -74,7 +84,7 @@ try
     builder.Services.AddSingleton<ITrainerService, TrainerService>();
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
-            options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
@@ -104,11 +114,14 @@ try
     app.UseSwaggerUI();
 
     app.UseCors("Frontend");
+    app.UseStaticFiles();
     app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapGet("/healthz", () => Results.Ok(new { status = "healthy" }));
+    app.MapGet("/trainers", () => Results.Redirect("/trainers/list"));
     app.MapControllers();
+    app.MapRazorPages();
 
     app.Run();
 }

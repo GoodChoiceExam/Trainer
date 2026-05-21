@@ -11,24 +11,31 @@ namespace FitLife.Trainer.Api.Controllers;
 public class TrainersController : ControllerBase
 {
     private readonly ITrainerService _trainerService;
+    private readonly ILogger<TrainersController> _logger;
 
-    public TrainersController(ITrainerService trainerService)
+    public TrainersController(ITrainerService trainerService, ILogger<TrainersController> logger)
     {
         _trainerService = trainerService;
+        _logger = logger;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
+        _logger.LogInformation("Fetching all trainers");
         return Ok(await _trainerService.GetAllAsync());
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
+        _logger.LogInformation("Fetching trainer {TrainerId}", id);
         var trainer = await _trainerService.GetByIdAsync(id);
         if (trainer is null)
+        {
+            _logger.LogWarning("Trainer {TrainerId} was not found", id);
             return NotFound();
+        }
 
         return Ok(trainer);
     }
@@ -37,6 +44,7 @@ public class TrainersController : ControllerBase
     public async Task<IActionResult> Create(TrainerRequest request)
     {
         var trainer = await _trainerService.CreateAsync(request);
+        _logger.LogInformation("Created trainer {TrainerId}", trainer.Id);
         return CreatedAtAction(nameof(GetById), new { id = trainer.Id }, trainer);
     }
 
@@ -45,8 +53,12 @@ public class TrainersController : ControllerBase
     {
         var trainer = await _trainerService.UpdateAsync(id, request);
         if (trainer is null)
+        {
+            _logger.LogWarning("Cannot update trainer {TrainerId}; it was not found", id);
             return NotFound();
+        }
 
+        _logger.LogInformation("Updated trainer {TrainerId}", id);
         return Ok(trainer);
     }
 
@@ -55,8 +67,12 @@ public class TrainersController : ControllerBase
     {
         var deleted = await _trainerService.DeleteAsync(id);
         if (!deleted)
+        {
+            _logger.LogWarning("Cannot delete trainer {TrainerId}; it was not found", id);
             return NotFound();
+        }
 
+        _logger.LogInformation("Deleted trainer {TrainerId}", id);
         return NoContent();
     }
 
@@ -67,12 +83,21 @@ public class TrainersController : ControllerBase
         {
             var booking = await _trainerService.BookAsync(id, request);
             if (booking is null)
+            {
+                _logger.LogWarning("Cannot book trainer {TrainerId}; it was not found", id);
                 return NotFound();
+            }
 
+            _logger.LogInformation(
+                "Created booking {BookingId} for member {MemberId} with trainer {TrainerId}",
+                booking.Id,
+                booking.MemberId,
+                id);
             return Created($"/api/trainers/{id}/bookings/{booking.Id}", booking);
         }
         catch (InvalidOperationException ex)
         {
+            _logger.LogWarning(ex, "Booking failed for trainer {TrainerId}", id);
             return BadRequest(ex.Message);
         }
     }
@@ -82,22 +107,49 @@ public class TrainersController : ControllerBase
     {
         var booking = await _trainerService.CancelBookingAsync(id, bookingId);
         if (booking is null)
+        {
+            _logger.LogWarning("Cannot cancel booking {BookingId} for trainer {TrainerId}", bookingId, id);
             return NotFound();
+        }
 
+        _logger.LogInformation("Cancelled booking {BookingId} for trainer {TrainerId}", bookingId, id);
         return Ok(booking);
     }
-    
+
     [HttpGet("bookings/mine")]
     public async Task<IActionResult> GetMyBookings([FromQuery] Guid memberId)
     {
         var bookings = await _trainerService.GetBookingsByMemberAsync(memberId);
         return Ok(bookings);
     }
-    
+
     [HttpGet("{id:guid}/booked-hours")]
     public async Task<IActionResult> GetBookedHours(Guid id, [FromQuery] DateOnly date)
     {
         var hours = await _trainerService.GetBookedHoursAsync(id, date);
         return Ok(hours);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("version")]
+    public async Task<Dictionary<string, string>> GetVersion()
+    {
+        var properties = new Dictionary<string, string>();
+        properties.Add("service", "FitLife Trainer API");
+        var ver = System.Diagnostics.FileVersionInfo.GetVersionInfo(typeof(Program).Assembly.Location).ProductVersion;
+        properties.Add("version", ver!);
+        try
+        {
+            var hostName = System.Net.Dns.GetHostName();
+            var ips = await System.Net.Dns.GetHostAddressesAsync(hostName);
+            var ipa = ips.First().MapToIPv4().ToString();
+            properties.Add("hosted-at-address", ipa);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            properties.Add("hosted-at-address", "Could not resolve IP-address");
+        }
+        return properties;
     }
 }
