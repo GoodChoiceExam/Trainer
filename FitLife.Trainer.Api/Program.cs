@@ -82,6 +82,7 @@ try
     builder.Services.AddMemoryCache();
     builder.Services.AddSingleton<ITrainerRepository, TrainerRepository>();
     builder.Services.AddSingleton<ITrainerService, TrainerService>();
+    builder.Services.AddHostedService<HeartbeatService>();
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
             options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
