@@ -10,5 +10,4 @@ public interface ITrainerRepository
     Task<PersonalTrainer?> GetByIdAsync(Guid id);
     Task<PersonalTrainer> AddAsync(PersonalTrainer trainer);
     Task<PersonalTrainer> UpdateAsync(PersonalTrainer trainer);
-    Task<bool> DeleteAsync(Guid id);
 }

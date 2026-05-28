@@ -31,27 +31,6 @@ public class TrainerService : ITrainerService
         return await _repository.AddAsync(trainer);
     }
 
-    public async Task<PersonalTrainer?> UpdateAsync(Guid id, TrainerRequest request)
-    {
-        var existing = await _repository.GetByIdAsync(id);
-        if (existing is null)
-            return null;
-
-        existing.Name = request.Name;
-        existing.Bio = request.Bio;
-        existing.Specialties = request.Specialties;
-        existing.ExperienceYears = request.ExperienceYears;
-        existing.Rating = request.Rating;
-        existing.Sessions = request.Sessions;
-
-        return await _repository.UpdateAsync(existing);
-    }
-
-    public async Task<bool> DeleteAsync(Guid id)
-    {
-        return await _repository.DeleteAsync(id);
-    }
-
     public async Task<TrainerBooking?> BookAsync(Guid trainerId, BookingRequest request)
     {
         var trainer = await _repository.GetByIdAsync(trainerId);
