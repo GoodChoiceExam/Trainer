@@ -86,10 +86,17 @@ public class TrainerRepository : ITrainerRepository
     public async Task<PersonalTrainer> UpdateAsync(PersonalTrainer trainer)
     {
         await _trainers.ReplaceOneAsync(t => t.Id == trainer.Id, trainer);
-        // Invaliderer både listen og den individuelle træner i cachen
         RemoveFromCache(AllTrainersCacheKey);
         RemoveFromCache($"trainer_{trainer.Id}");
         return trainer;
+    }
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var result = await _trainers.DeleteOneAsync(t => t.Id == id);
+        RemoveFromCache(AllTrainersCacheKey);
+        RemoveFromCache($"trainer_{id}");
+        return result.DeletedCount > 0;
     }
 
 }
