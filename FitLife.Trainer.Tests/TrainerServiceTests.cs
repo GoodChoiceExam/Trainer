@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace FitLife.Trainer.Tests;
 
+// Tester booking- og aflysningslogikken direkte på PersonalTrainer-modellen.
 [TestFixture]
 public class TrainerServiceTests
 {

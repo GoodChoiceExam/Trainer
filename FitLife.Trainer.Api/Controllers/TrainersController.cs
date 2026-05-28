@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FitLife.Trainer.Api.Controllers;
 
+// Eksponerer endpoints til oprettelse, opdatering, sletning og booking af trænere via HTTP.
 [ApiController]
 [Route("api/trainers")]
 [Authorize]
@@ -97,6 +98,7 @@ public class TrainersController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
+            // Kastes af PersonalTrainer.Book() hvis tidspunktet allerede er booket
             _logger.LogWarning(ex, "Booking failed for trainer {TrainerId}", id);
             return BadRequest(ex.Message);
         }
@@ -116,6 +118,7 @@ public class TrainersController : ControllerBase
         return Ok(booking);
     }
 
+    // MemberId sendes som query parameter da det ikke er en del af JWT-tokenet i denne service
     [HttpGet("bookings/mine")]
     public async Task<IActionResult> GetMyBookings([FromQuery] Guid memberId)
     {

@@ -11,10 +11,14 @@ using MongoDB.Driver;
 using NLog;
 using NLog.Web;
 
+// Konfigurerer og starter Trainer API'et.
+// Opsætter JWT-validering, MongoDB, in-memory cache, Razor Pages, NLog og Swagger.
+
 var logger = LogManager.Setup().LoadConfigurationFromFile("NLog.config").GetCurrentClassLogger();
 
 try
 {
+    // Guid gemmes som standard UUID-streng i MongoDB i stedet for BSON binary
     BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.GuidRepresentation.Standard));
 
     var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +26,7 @@ try
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
 
+    // HttpClient til Razor Page — kalder Nginx-gatewayen for at hente trænerlisten
     var gatewayUrl = builder.Configuration["GatewayUrl"] ?? "http://localhost";
     builder.Services.AddHttpClient("FitLifeGateway", client =>
     {
@@ -67,6 +72,7 @@ try
 
     builder.Services.AddAuthorization();
 
+    // CORS tillader kun kald fra lokal Blazor-frontend under udvikling
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("Frontend", policy =>
@@ -79,10 +85,12 @@ try
     var database = mongoClient.GetDatabase(builder.Configuration["MongoDB:DatabaseName"]);
     builder.Services.AddSingleton(database);
 
+    // Registrerer in-memory cache som bruges af TrainerRepository
     builder.Services.AddMemoryCache();
     builder.Services.AddSingleton<ITrainerRepository, TrainerRepository>();
     builder.Services.AddSingleton<ITrainerService, TrainerService>();
     builder.Services.AddHostedService<HeartbeatService>();
+    // Enum-værdier serialiseres som strenge (fx "Booked") i stedet for tal i JSON-responses
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
             options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -120,7 +128,7 @@ try
     app.UseAuthorization();
 
     app.MapGet("/healthz", () => Results.Ok(new { status = "healthy" }));
-    app.MapGet("/trainers", () => Results.Redirect("/trainers/list"));
+    app.MapGet("/trainers", () => Results.Redirect("/trainers/list")); // Redirect til Razor Page
     app.MapControllers();
     app.MapRazorPages();
 

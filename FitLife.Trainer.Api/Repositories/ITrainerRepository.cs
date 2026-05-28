@@ -2,6 +2,8 @@ using FitLife.Trainer.Api.Models;
 
 namespace FitLife.Trainer.Api.Repositories;
 
+// Definerer kontrakten for databaseoperationer på trænere.
+// Implementeres af TrainerRepository og kan mockes i tests.
 public interface ITrainerRepository
 {
     Task<List<PersonalTrainer>> GetAllAsync();
