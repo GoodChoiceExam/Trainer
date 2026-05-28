@@ -4,8 +4,6 @@ using FitLife.Trainer.Api.Repositories;
 
 namespace FitLife.Trainer.Api.Services;
 
-// Indeholder forretningslogik for trænere og bookinger.
-// Controlleren kalder servicen, som delegerer databaseoperationer til repository.
 public class TrainerService : ITrainerService
 {
     private readonly ITrainerRepository _repository;
@@ -31,13 +29,48 @@ public class TrainerService : ITrainerService
         return await _repository.AddAsync(trainer);
     }
 
+    public async Task<PersonalTrainer?> UpdateAsync(Guid id, TrainerRequest request)
+    {
+        var existing = await _repository.GetByIdAsync(id);
+        if (existing is null)
+            return null;
+
+        existing.Name = request.Name;
+        existing.Bio = request.Bio;
+        existing.Specialties = request.Specialties;
+        existing.ExperienceYears = request.ExperienceYears;
+        existing.Rating = request.Rating;
+        existing.Sessions = request.Sessions;
+
+        return await _repository.UpdateAsync(existing);
+    }
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        return await _repository.DeleteAsync(id);
+    }
+
     public async Task<TrainerBooking?> BookAsync(Guid trainerId, BookingRequest request)
     {
         var trainer = await _repository.GetByIdAsync(trainerId);
         if (trainer is null)
             return null;
 
-        var booking = trainer.Book(request.MemberId, request.SessionTime);
+        if (trainer.Bookings.Any(b => b.Status == BookingStatus.Booked
+                                      && b.SessionTime.Date == request.SessionTime.Date
+                                      && b.SessionTime.Hour == request.SessionTime.Hour))
+            throw new InvalidOperationException("Tidspunktet er allerede booket.");
+
+        var booking = new TrainerBooking
+        {
+            MemberId = request.MemberId,
+            TrainerId = trainerId,
+            SessionTime = request.SessionTime,
+            BookedAt = DateTime.UtcNow,
+            Status = BookingStatus.Booked
+        };
+
+        trainer.Bookings.Add(booking);
         await _repository.UpdateAsync(trainer);
         return booking;
     }
@@ -48,17 +81,17 @@ public class TrainerService : ITrainerService
         if (trainer is null)
             return null;
 
-        var booking = trainer.CancelBooking(bookingId);
+        var booking = trainer.Bookings.FirstOrDefault(b => b.Id == bookingId);
         if (booking is null)
             return null;
 
+        booking.Status = BookingStatus.Cancelled;
         await _repository.UpdateAsync(trainer);
         return booking;
     }
 
     public async Task<List<TrainerBooking>> GetBookingsByMemberAsync(Guid memberId)
     {
-        // Henter alle trænere og laver deres bookings om til én liste, filtrerer kun aktive bookinger
         var trainers = await _repository.GetAllAsync();
         return trainers
             .SelectMany(t => t.Bookings)
@@ -68,8 +101,6 @@ public class TrainerService : ITrainerService
 
     public async Task<List<int>> GetBookedHoursAsync(Guid trainerId, DateOnly date)
     {
-        // Returnerer en liste af timer (fx 9, 11, 14) som er booket den givne dato
-        // Bruges af frontend til at vise hvilke tider der er ledige
         var trainer = await _repository.GetByIdAsync(trainerId);
         if (trainer is null) return [];
 
@@ -80,7 +111,6 @@ public class TrainerService : ITrainerService
             .ToList();
     }
 
-    // Mapper en DTO til et objekt
     private static PersonalTrainer ToTrainer(TrainerRequest request) => new()
     {
         Name = request.Name,
