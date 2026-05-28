@@ -28,7 +28,7 @@ try
 
     var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "fitlife-identity";
     var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "fitlife";
-    var secret = builder.Configuration["Jwt:Secret"] ?? "dev-secret-change-in-production";
+    var secret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Jwt:Secret is not configured");
 
     builder.Services
         .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -61,11 +61,14 @@ try
         });
 
     builder.Services.AddAuthorization();
-    
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("Frontend", policy =>
-            policy.WithOrigins("http://localhost:5271")
+            policy.WithOrigins(
+                    "http://localhost:5271",
+                    "http://localhost",
+                    "https://goodchoice.cc")
                   .AllowAnyHeader()
                   .AllowAnyMethod());
     });
