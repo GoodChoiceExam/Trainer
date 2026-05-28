@@ -92,12 +92,4 @@ public class TrainerRepository : ITrainerRepository
         return trainer;
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
-    {
-        var result = await _trainers.DeleteOneAsync(t => t.Id == id);
-        // Invaliderer både listen og den individuelle træner i cachen
-        RemoveFromCache(AllTrainersCacheKey);
-        RemoveFromCache($"trainer_{id}");
-        return result.DeletedCount > 0;
-    }
 }
