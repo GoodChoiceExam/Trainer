@@ -1,5 +1,6 @@
 name: CI/CD
 
+# Bygger og tester på alle branches. Publish sker kun på master.
 on:
   push:
     branches: [master, develop, "feature/**"]
@@ -36,6 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Læser InformationalVersion fra .csproj og splitter op i full, minor og major
       - name: Get version
         id: version
         run: |
@@ -71,6 +73,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      # Trigge Infrastructure-repoets deploy-workflow via DEPLOY_PAT så serveren henter det nye image
       - name: Trigger Infrastructure deploy
         run: |
           gh workflow run deploy.yml \

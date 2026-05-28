@@ -1,5 +1,7 @@
 namespace FitLife.Trainer.Api.Models;
 
+// Repræsenterer en personlig træner med bookinger. Gemmes som ét dokument i MongoDB
+// hvor bookinger ligger som en indlejret liste på træner-dokumentet.
 public class PersonalTrainer
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -13,6 +15,7 @@ public class PersonalTrainer
 
     public TrainerBooking Book(Guid memberId, DateTime sessionTime)
     {
+        // Tjekker om trænerens kalender allerede har en aktiv booking på samme dato og time
         if (Bookings.Any(b => b.Status == BookingStatus.Booked
                               && b.SessionTime.Date == sessionTime.Date
                               && b.SessionTime.Hour == sessionTime.Hour))
@@ -31,6 +34,7 @@ public class PersonalTrainer
         return booking;
     }
 
+    // Sætter status til Cancelled i stedet for at slette — bevarer historikken
     public TrainerBooking? CancelBooking(Guid bookingId)
     {
         var booking = Bookings.FirstOrDefault(b => b.Id == bookingId);
