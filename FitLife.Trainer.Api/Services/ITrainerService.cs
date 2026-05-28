@@ -3,6 +3,8 @@ using FitLife.Trainer.Api.Models;
 
 namespace FitLife.Trainer.Api.Services;
 
+// Definerer kontrakten for træner-forretningslogik.
+// Implementeres af TrainerService og kan mockes i tests.
 public interface ITrainerService
 {
     Task<List<PersonalTrainer>> GetAllAsync();

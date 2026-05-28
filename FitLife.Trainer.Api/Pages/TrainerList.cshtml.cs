@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace FitLife.Trainer.Api.Pages;
 
+// Razor Page der henter og viser en liste af trænere via Nginx-gatewayen.
+// Bruges til Page Decomposition-mønstret (M14.01) — serveres statisk af Nginx på /trainers/list.
 public class TrainerListModel : PageModel
 {
     private readonly IHttpClientFactory? _clientFactory = null;
@@ -25,6 +27,7 @@ public class TrainerListModel : PageModel
     }
 }
 
+// DTO til at modtage trænerdata fra API'et i Razor Page-visningen
 public class TrainerItemDTO
 {
     public Guid Id { get; set; }

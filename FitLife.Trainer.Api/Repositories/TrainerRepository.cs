@@ -4,6 +4,8 @@ using MongoDB.Driver;
 
 namespace FitLife.Trainer.Api.Repositories;
 
+// MongoDB-implementering af ITrainerRepository med in-memory cache.
+// Trænere caches i op til 1 time da de sjældent ændrer sig
 public class TrainerRepository : ITrainerRepository
 {
     private readonly IMongoCollection<PersonalTrainer> _trainers;
@@ -23,8 +25,8 @@ public class TrainerRepository : ITrainerRepository
     {
         var options = new MemoryCacheEntryOptions
         {
-            AbsoluteExpiration = DateTime.Now.AddHours(1),
-            SlidingExpiration = TimeSpan.FromMinutes(10),
+            AbsoluteExpiration = DateTime.Now.AddHours(1),    // Cachen udløber senest efter 1 time
+            SlidingExpiration = TimeSpan.FromMinutes(10),     // Udløber også hvis ikke tilgået i 10 minutter
             Priority = CacheItemPriority.High
         };
         _memoryCache.Set(key, value, options);
@@ -76,6 +78,7 @@ public class TrainerRepository : ITrainerRepository
     public async Task<PersonalTrainer> AddAsync(PersonalTrainer trainer)
     {
         await _trainers.InsertOneAsync(trainer);
+        // Invaliderer listen af alle trænere så den næste forespørgsel henter fra databasen
         RemoveFromCache(AllTrainersCacheKey);
         return trainer;
     }
@@ -83,6 +86,7 @@ public class TrainerRepository : ITrainerRepository
     public async Task<PersonalTrainer> UpdateAsync(PersonalTrainer trainer)
     {
         await _trainers.ReplaceOneAsync(t => t.Id == trainer.Id, trainer);
+        // Invaliderer både listen og den individuelle træner i cachen
         RemoveFromCache(AllTrainersCacheKey);
         RemoveFromCache($"trainer_{trainer.Id}");
         return trainer;
@@ -91,6 +95,7 @@ public class TrainerRepository : ITrainerRepository
     public async Task<bool> DeleteAsync(Guid id)
     {
         var result = await _trainers.DeleteOneAsync(t => t.Id == id);
+        // Invaliderer både listen og den individuelle træner i cachen
         RemoveFromCache(AllTrainersCacheKey);
         RemoveFromCache($"trainer_{id}");
         return result.DeletedCount > 0;

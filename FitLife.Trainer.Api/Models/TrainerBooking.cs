@@ -1,5 +1,6 @@
 namespace FitLife.Trainer.Api.Models;
 
+// Repræsenterer en enkelt booking af en træner. Gemmes indlejret i PersonalTrainer-dokumentet i MongoDB.
 public class TrainerBooking
 {
     public Guid Id { get; set; } = Guid.NewGuid();

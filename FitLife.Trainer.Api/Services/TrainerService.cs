@@ -4,6 +4,8 @@ using FitLife.Trainer.Api.Repositories;
 
 namespace FitLife.Trainer.Api.Services;
 
+// Indeholder forretningslogik for trænere og bookinger.
+// Controlleren kalder servicen, som delegerer databaseoperationer til repository.
 public class TrainerService : ITrainerService
 {
     private readonly ITrainerRepository _repository;
@@ -77,6 +79,7 @@ public class TrainerService : ITrainerService
 
     public async Task<List<TrainerBooking>> GetBookingsByMemberAsync(Guid memberId)
     {
+        // Henter alle trænere og laver deres bookings om til én liste, filtrerer kun aktive bookinger
         var trainers = await _repository.GetAllAsync();
         return trainers
             .SelectMany(t => t.Bookings)
@@ -86,6 +89,8 @@ public class TrainerService : ITrainerService
 
     public async Task<List<int>> GetBookedHoursAsync(Guid trainerId, DateOnly date)
     {
+        // Returnerer en liste af timer (fx 9, 11, 14) som er booket den givne dato
+        // Bruges af frontend til at vise hvilke tider der er ledige
         var trainer = await _repository.GetByIdAsync(trainerId);
         if (trainer is null) return [];
 
@@ -96,6 +101,7 @@ public class TrainerService : ITrainerService
             .ToList();
     }
 
+    // Mapper en DTO til et objekt
     private static PersonalTrainer ToTrainer(TrainerRequest request) => new()
     {
         Name = request.Name,
