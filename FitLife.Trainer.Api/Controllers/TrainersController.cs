@@ -48,6 +48,20 @@ public class TrainersController : ControllerBase
         _logger.LogInformation("Created trainer {TrainerId}", trainer.Id);
         return CreatedAtAction(nameof(GetById), new { id = trainer.Id }, trainer);
     }
+    
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var deleted = await _trainerService.DeleteAsync(id);
+        if (!deleted)
+        {
+            _logger.LogWarning("Cannot delete trainer {TrainerId}; it was not found", id);
+            return NotFound();
+        }
+
+        _logger.LogInformation("Deleted trainer {TrainerId}", id);
+        return NoContent();
+    }
 
     [HttpPost("{id:guid}/bookings")]
     public async Task<IActionResult> Book(Guid id, BookingRequest request)
