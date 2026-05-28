@@ -12,7 +12,7 @@ using NLog;
 using NLog.Web;
 
 // Konfigurerer og starter Trainer API'et.
-// Opsætter JWT-validering, MongoDB, in-memory cache, Razor Pages, NLog og Swagger.
+// Opsætter JWT-validering, MongoDB, in-memory cache, NLog og Swagger.
 
 var logger = LogManager.Setup().LoadConfigurationFromFile("NLog.config").GetCurrentClassLogger();
 
@@ -25,16 +25,6 @@ try
 
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
-
-    // HttpClient til Razor Page — kalder Nginx-gatewayen for at hente trænerlisten
-    var gatewayUrl = builder.Configuration["GatewayUrl"] ?? "http://localhost";
-    builder.Services.AddHttpClient("FitLifeGateway", client =>
-    {
-        client.BaseAddress = new Uri(gatewayUrl);
-        client.DefaultRequestHeaders.Add("Accept", "application/json");
-    });
-
-    builder.Services.AddRazorPages();
 
     var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "fitlife-identity";
     var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "fitlife";
@@ -123,14 +113,11 @@ try
     app.UseSwaggerUI();
 
     app.UseCors("Frontend");
-    app.UseStaticFiles();
     app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapGet("/healthz", () => Results.Ok(new { status = "healthy" }));
-    app.MapGet("/trainers", () => Results.Redirect("/trainers/list")); // Redirect til Razor Page
     app.MapControllers();
-    app.MapRazorPages();
 
     app.Run();
 }
