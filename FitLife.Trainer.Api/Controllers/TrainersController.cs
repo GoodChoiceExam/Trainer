@@ -49,34 +49,6 @@ public class TrainersController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = trainer.Id }, trainer);
     }
 
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, TrainerRequest request)
-    {
-        var trainer = await _trainerService.UpdateAsync(id, request);
-        if (trainer is null)
-        {
-            _logger.LogWarning("Cannot update trainer {TrainerId}; it was not found", id);
-            return NotFound();
-        }
-
-        _logger.LogInformation("Updated trainer {TrainerId}", id);
-        return Ok(trainer);
-    }
-
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        var deleted = await _trainerService.DeleteAsync(id);
-        if (!deleted)
-        {
-            _logger.LogWarning("Cannot delete trainer {TrainerId}; it was not found", id);
-            return NotFound();
-        }
-
-        _logger.LogInformation("Deleted trainer {TrainerId}", id);
-        return NoContent();
-    }
-
     [HttpPost("{id:guid}/bookings")]
     public async Task<IActionResult> Book(Guid id, BookingRequest request)
     {
